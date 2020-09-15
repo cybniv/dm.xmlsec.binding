@@ -1,7 +1,7 @@
-Metadata-Version: 1.1
+Metadata-Version: 1.0
 Name: dm.xmlsec.binding
-Version: 1.0
-Summary: Cython/lxml based binding for the XML security library -- for lxml 2.x
+Version: 1.0b1
+Summary: Cython/lxml based binding for the XML security library
 Home-page: http://pypi.python.org/pypi/dm.xmlsec.binding
 Author: Dieter Maurer
 Author-email: dieter@handshake.de
@@ -30,13 +30,6 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         for ``lxml`` lack the respective files. In those cases, you may need to
         download an `lxml` source distribution and let the environment
         variable ``LXML_HOME`` point to its root.
-        
-        ``xmlsec`` can use different cryptographic engines (currently ``openssl``,
-        ``gnutls`` and ``nss``). By default, this package configures
-        ``xmlsec`` to use its default engine. Should you require a different
-        engine, you can set the envvar ``XMLSEC_CRYPTO_ENGINE`` to the corresponding
-        value. In this case, you may need to pass the name of your crypto engine
-        to the ``initialize`` function.
         
         I have tried installation only on Linux, it may not work on other
         platforms.
@@ -68,7 +61,7 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         rule. For example, the xmlsec ``xmlSecCryptoAppDefaultKeysMngrAdoptKey``
         function becomes the ``addKey`` method of class ``KeysMngr``
         reflecting that we only support "default keys managers" and that
-        we do not support keys adoption (but copy the key).
+        we do not support keys adaption (but copy the key).
         
         
         Keys
@@ -82,7 +75,7 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         lifetime) **but** copy the encapsulated ``xmlsec`` key whenever
         it is passed over to a ``KeysMngr`` or a signature/encryption
         context. This has important ramifications: you do not need to worry
-        about the validity of a key (it is valid as long as you have a handle to it);
+        about the validity of a key (it is valid as long as you have a handle to it),
         however, modifications to a key have no effects on the (copied)
         ``xmlsec`` key previously passed over to a keys manager or
         signature/encryption context. This forces some changes in the
@@ -146,22 +139,6 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         of the ``lxml`` binding.
         
         
-        Failure handling
-        ----------------
-        
-        As a C library, ``xmlsec`` mostly uses return codes to indicate success/failure
-        for its functions.
-        In rare situations, a "status" field needs to be checked as well. 
-        In Python, we have exceptions. Thus, I change failure handling: any
-        failure is indicated by an exception. Currently, there are two exception
-        classes: the base class ``Error`` and a derived class ``VerificationError``.
-        ``Error`` is used whenever the return code of an ``xmlsec`` function
-        indicates a failure. ``VerificationError`` is used for signature
-        verification when the ``verify`` call returned an "ok" status but
-        the status field in the context indicates that the verification failed.
-        
-        
-        
         Binding extent
         --------------
         
@@ -170,18 +147,6 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         either by me or the examples.
         
         It is likely that the binding will become more complete over time.
-        
-        
-        Documentation
-        =============
-        
-        I do not like separate documentation (apart from overviews).
-        I am a fan of documentation derived automatically from the source -- if
-        possible available directly inside the Python session.
-        As a consequence, you can use ``pydoc`` or Python's ``help`` builtin
-        to get detailed documentation (apart from looking at the source and
-        reading this overview).
-        
         
         Examples
         ========
@@ -225,7 +190,7 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         a signature template. The template describes how the signature should
         be performed and contains placeholders for the signature parts.
         The XML security libraries examples view the complete XML file as
-        a template. Below is a function which signs such a template.
+        a template. Below is a function which signed such a template.
         
         >>> def sign_file(tmpl_file, key_file):
         ...     """sign *tmpl_file* with key in *key_file*.
@@ -233,7 +198,7 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         ...     *tmpl_file* actually contains an XML document containing a signature
         ...     template. It can be a file, a filename string or an HTTP/FTP url.
         ... 
-        ...     *key_file* contains the PEM encoded private key. It must be a filename string.
+        ...     *key_file* contains the PEM encode private key. It must be a filename string.
         ...     """
         ...     from lxml.etree import parse, tostring
         ...     doc = parse(tmpl_file)
@@ -299,7 +264,7 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         construction.
         
         In addition, the module provides factories (``Signature`` and ``EncData``)
-        which facilitate the creation of the top level structure of a signature
+        the facilitate the creation of the top level structure of a signature
         or encryption template.
         
         >>> def sign_file_create_template(xml_file, key_file):
@@ -307,7 +272,7 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         ... 
         ...     *xml_file* can be a file, a filename string or an HTTP/FTP url.
         ... 
-        ...     *key_file* contains the PEM encoded private key. It must be a filename string.
+        ...     *key_file* contains the PEM encode private key. It must be a filename string.
         ...     """
         ...     # template aware infrastructure
         ...     from dm.xmlsec.binding.tmpl import parse, Element, SubElement, \
@@ -357,7 +322,7 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         ...     """sign *xml_file* with *key_file* and include content of *cert_file*.
         ...     *xml_file* can be a file, a filename string or an HTTP/FTP url.
         ... 
-        ...     *key_file* contains the PEM encoded private key. It must be a filename string.
+        ...     *key_file* contains the PEM encode private key. It must be a filename string.
         ... 
         ...     *cert_file* contains a PEM encoded certificate (corresponding to *key_file*),
         ...     included as `X509Data` in the dynamically created `Signature` template.
@@ -581,37 +546,6 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         Encrypting xml file with a dynamically created template
         -------------------------------------------------------
         
-        >>> def encrypt_file_create_template(xml_file, key_file):
-        ...     """encrypt *xml_file* with key in *key_file*, generating the template.
-        ... 
-        ...     *xml_file* contains an XML file content of which should be encrypted.
-        ...     It can be a file, a filename string or an HTTP/FTP url.
-        ...     *key_file* contains a triple DES key. It must be a filename string.
-        ...     """
-        ...     # template aware infrastructure
-        ...     from dm.xmlsec.binding.tmpl import parse, Element, SubElement, \
-        ...          fromstring, XML
-        ...     from dm.xmlsec.binding.tmpl import EncData
-        ...     doc = parse(xml_file)
-        ...     encData = EncData(xmlsec.TransformDes3Cbc, type=xmlsec.TypeEncElement)
-        ...     encData.ensureCipherValue() # target for encryption result
-        ...     keyInfo = encData.ensureKeyInfo()
-        ...     encCtx = xmlsec.EncCtx()
-        ...     encKey = xmlsec.Key.readBinaryFile(xmlsec.KeyDataDes, key_file)
-        ...     # must set the key before the key assignment to `encCtx`
-        ...     encKey.name = key_file
-        ...     encCtx.encKey = encKey
-        ...     ed = encCtx.encryptXml(encData, doc.getroot())
-        ...     return tostring(ed.getroottree())
-        ... 
-        >>> encrypted_file = encrypt_file_create_template(
-        ...     BASEDIR + "encrypt2-doc.xml",
-        ...     BASEDIR + "deskey.bin"
-        ...     )
-        >>> print encrypted_file
-        <!-- 
-        XML Security Library example: Original XML doc file before encryption (encrypt2 example). 
-        --><EncryptedData xmlns="http://www.w3.org/2001/04/xmlenc#" Type="http://www.w3.org/2001/04/xmlenc#Element"><EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#tripledes-cbc"/><ns0:KeyInfo xmlns:ns0="http://www.w3.org/2000/09/xmldsig#"/><CipherData><CipherValue>...</CipherValue></CipherData></EncryptedData>
         
         
         
@@ -804,45 +738,9 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         Note that the numbers in the error output are source code line numbers.
         They depend on the ``xmlsec`` version you have installed and
         consequently can be different when you try this code.
-        
-        
-        Notes
-        =====
-        
-        XML ids
-        -------
-        
-        Digital signatures and XML encryption can make use of XML ids. For example,
-        this is the case for SAML2. XML ids can make problems as XML does not
-        specify which attributes may contain an id. Newer versions of XML designated
-        ``xml:id`` for this purpose, but older standards (again SAML2 is an
-        example) does not yet use this but their own id attributes.
-        As a consequence, the XML processing system (``libxml2`` in our context)
-        must be informed about which attributes can contain ids.
-        
-        ``libxml2`` knows about ``xml:id`` and if the XML document is
-        validated against a document type or an XML schema, it uses the information
-        described there to identify id attributes. If the XML document
-        is not validated, any id attributes different from ``xml:id``
-        must be made known by the application through a call to
-        the ``addIds(node, ids)`` function defined by ``xmlsec``.
-        ``addIds`` visits the children of *node* (probably recursively)
-        and extends the id map (it maps ids to nodes) of the document of *node*
-        for each found attribute whose name is listed in *ids* (a list of
-        attribute names).
-        
-        Note that the error information provided by ``xmlsec`` in case
-        of an undeclared id attribute may be difficult to decipher. It will probably
-        tell you about a problem with an XPointer transform in this case.
-        
-        Note also that id references may be made indirectly, e.g. via
-        fragment parts of urls (again, SAML2 is an example). Thus,
-        when signing, signature verification or encryption/decryption
-        fails for no apparent reason it may be a good idea to check
-        whether this might be caused by unknown id attribute information.
 Keywords: encryption xml security digital signature cython lxml
 Platform: UNKNOWN
-Classifier: Development Status :: 5 - Production/Stable
+Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: BSD License
 Classifier: Operating System :: OS Independent

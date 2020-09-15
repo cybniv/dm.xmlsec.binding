@@ -1,8 +1,5 @@
-LXML_REQUIREMENT = "lxml>=2.0,<=2.9999"
-
 import sys, commands
 from os.path import abspath, dirname, join, exists
-from os import environ
 
 # see whether Cython is installed
 try: import Cython
@@ -95,19 +92,11 @@ libxml2_libs = commands.getoutput('xml2-config --libs')
 if libxml2_libs[:2] not in ["-l", "-L"]:
     sys.exit("Error : cannot get LibXML2 linker flags; do you have the `libxml2` development package installed?")
 
-crypto_engine = environ.get("XMLSEC_CRYPTO_ENGINE")
-if crypto_engine is None:
-  crypto_engine = commands.getoutput("xmlsec1-config --crypto")
-  if not crypto_engine:
-    sys.exit("Error: cannot get XMLSec1 crypto engine")
-else:
-  assert crypto_engine in ("openssl", "gnutls", "nss")
-crypto_engine = " --crypto=" + crypto_engine
-xmlsec1_cflags = commands.getoutput("xmlsec1-config --cflags" + crypto_engine)
+xmlsec1_cflags = commands.getoutput("xmlsec1-config --cflags")
 if xmlsec1_cflags[:2] not in ["-I", "-D"]:
-    sys.exit("Error: cannot get XMLSec1 pre-processor and compiler flags; do you have the `libxmlsec1` development package installed?")
+    sys.exit("Error : cannot get XMLSec1 pre-processor and compiler flags; do you have the `libxmlsec1` development package installed?")
 
-xmlsec1_libs = commands.getoutput("xmlsec1-config --libs" + crypto_engine)
+xmlsec1_libs = commands.getoutput("xmlsec1-config --libs")
 if xmlsec1_libs[:2] not in ["-l", "-L"]:
     sys.exit("Error : cannot get XMLSec1 linker flags; do you have the `libxmlsec1` development package installed?")
 
@@ -128,8 +117,7 @@ def get_lxml_include_dirs():
   else:
     if not exists(lxml_home):
       sys.exit("The directory specified via envvar `LXML_HOME` does not exist")
-    if exists(join(lxml_home, "src")): lxml_home = join(lxml_home, "src")
-    if exists(join(lxml_home, "lxml")): lxml_home = join(lxml_home, "lxml")
+    lxml_home = join(lxml_home, "src", "lxml")
   # check that it contains what is needed
   lxml_include = join(lxml_home, "include")
   if not (exists(join(lxml_home, "etreepublic.pxd")) \
@@ -137,36 +125,13 @@ def get_lxml_include_dirs():
     sys.exit("The lxml installation lacks the mandatory `etreepublic.pxd`. You may need to install `lxml` manually or set envvar `LXML_HOME` to an `lxml` installation with `etreepublic.pxd`")
   return [lxml_home, lxml_include]
 
-# to work around a `buildout` bug (not honoring version pinning
-#   for `setup_requires`), we try here to avoid `setup_requires`.
-#   If envvar `LXML_HOME` is defined, we hope (i.e. no check) that
-#   the `lxml` distribution it points to is compatible with the
-#   `lxml` we will be finally using.
-#   Otherwise, we let `pkg_resources` find and activate an
-#   appropriate distribution.
-SETUP_REQUIREMENTS = LXML_REQUIREMENT,
-
-if environ.get("LXML_HOME"): SETUP_REQUIREMENTS = ()
-else:
-  try: from pkg_resources import require, DistributionNotFound, VersionConflict
-  except ImportError: pass # should not happen
-  else:
-    try:
-      for r in require(LXML_REQUIREMENT): r.activate()
-    except VersionConflict:
-      sys.exit("The available `lxml` version is incompatible with the version requirement: %s" % LXML_REQUIREMENT)
-    except DistributionNotFound:
-      pass # let setup install a version
-    else: SETUP_REQUIREMENTS = ()
-
-
 
 setupArgs = dict(
     include_package_data=True,
-    setup_requires=SETUP_REQUIREMENTS, # see "http://mail.python.org/pipermail/distutils-sig/2006-October/006749.html" in case of problems
+    setup_requires=["lxml",], # see "http://mail.python.org/pipermail/distutils-sig/2006-October/006749.html" in case of problems
     install_requires=[
       'setuptools', # to make "buildout" happy
-      LXML_REQUIREMENT,
+      "lxml",
     ] ,
     namespace_packages=['dm', 'dm.xmlsec',
                         ],
@@ -185,12 +150,12 @@ def pread(filename, base=pd): return open(join(base, filename)).read().rstrip()
 
 setup(name='dm.xmlsec.binding',
       version=pread('VERSION.txt').split('\n')[0],
-      description="Cython/lxml based binding for the XML security library -- for lxml 2.x",
+      description="Cython/lxml based binding for the XML security library",
       long_description=pread('README.txt'),
       classifiers=[
         #'Development Status :: 3 - Alpha',
-        #'Development Status :: 4 - Beta',
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
+        #'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
