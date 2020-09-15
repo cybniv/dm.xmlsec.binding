@@ -1,7 +1,7 @@
 Metadata-Version: 1.1
 Name: dm.xmlsec.binding
-Version: 1.0b4
-Summary: Cython/lxml based binding for the XML security library -- for lxml 2.x
+Version: 1.1b1
+Summary: Cython/lxml based binding for the XML security library -- for lxml 3.x
 Home-page: http://pypi.python.org/pypi/dm.xmlsec.binding
 Author: Dieter Maurer
 Author-email: dieter@handshake.de
@@ -840,6 +840,16 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         when signing, signature verification or encryption/decryption
         fails for no apparent reason it may be a good idea to check
         whether this might be caused by unknown id attribute information.
+        
+        
+        History
+        =======
+        
+        1.1
+          for lxml 3.x
+        
+        1.0
+          for lxml 2.x
 Keywords: encryption xml security digital signature cython lxml
 Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
