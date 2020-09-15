@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: dm.xmlsec.binding
-Version: 1.1b1
+Version: 1.2
 Summary: Cython/lxml based binding for the XML security library -- for lxml 3.x
 Home-page: http://pypi.python.org/pypi/dm.xmlsec.binding
 Author: Dieter Maurer
@@ -524,6 +524,9 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         ...         dsigCtx.enableReferenceTransform(tid)
         ...     dsigCtx.enableSignatureTransform(xmlsec.TransformRsaSha1)
         ...     dsigCtx.enableReferenceTransform(xmlsec.TransformEnveloped)
+        ...     # thanks to a patch provided by Greg Vishnepolsky, we can know
+        ...     #   also limit the acceptable key data
+        ...     dsigCtx.setEnabledKeyData([xmlsec.KeyDataX509])
         ...     dsigCtx.verify(node)
         ... 
         >>> # this works
@@ -844,6 +847,9 @@ Description: This package contains a Cython (http://cython.org/) based bindung
         
         History
         =======
+        
+        1.2
+          Greg Vishnepolsky provided support for ``DSigCtx.setEnabledKeyData``.
         
         1.1
           for lxml 3.x
